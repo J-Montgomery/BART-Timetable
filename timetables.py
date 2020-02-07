@@ -1,8 +1,11 @@
 #! /usr/bin/env python3
-from bs4 import BeautifulSoup
-import requests
-import datetime 
+import datetime
+import optparse
 import re
+
+import requests
+from bs4 import BeautifulSoup
+
 
 class TablePrinter(object):
     "Print a list of dicts as a table"
@@ -125,6 +128,13 @@ def get_route_departures(orig_station, dest, key):
 					'delay': d} for t, d in zip(dest_rtd['times'], dest_rtd['delay'])]
 
 if __name__ == "__main__":
+	parser = optparse.OptionParser()
+	parser.add_option(	"-o", "--origin", dest="origin", default="CIVC",
+						help="Origin Station")
+	parser.add_option(	"-d", "--destination", dest="dest", default="DUBL",
+						help="Destination Station")
+	(options, args) = parser.parse_args()
+	
 	bart_api_key = get_current_bart_api_key()
 	# all_departures = [{	'name': x['trainheadstation'], 'time': x['origtime']} 
 	# 					for x in get_station_sched("CIVC", "today", bart_api_key)]
@@ -138,7 +148,7 @@ if __name__ == "__main__":
 	# ]
 	# print( TablePrinter(fmt, ul='=')(dubl_departures) )
 
-	departures = get_route_departures("CIVC", "DUBL", bart_api_key)
+	departures = get_route_departures(options.origin, options.dest, bart_api_key)
 	fmt = [
 		('Destination', 'name', 17),
 		('Departure',   'time', 9),
