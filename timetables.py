@@ -1,9 +1,8 @@
 #! /usr/bin/env python3
 from bs4 import BeautifulSoup
-import optparse
 import requests
-import json
 import datetime 
+import re
 
 class TablePrinter(object):
     "Print a list of dicts as a table"
@@ -56,10 +55,6 @@ def get_current_bart_api_key(use_default=True):
 		else:
 			print("Found API key: {}".format(key))
 		return key
-
-def set_bart_vars():
-	global bart_api_key
-	bart_api_key = get_current_bart_api_key()
 
 def get_station_sched(station, date, key):
 	api_url = 'http://api.bart.gov/api/sched.aspx?cmd=stnsched'
@@ -126,20 +121,27 @@ def get_route_departures(orig_station, dest, key):
 		dest_rtd = routes[0]
 		return [{	'name' : dest_rtd['dest_name'],
 					'dest' : dest_rtd['dest'],
-					'time' : t} for t in dest_rtd['times']]
-					
+					'time' : t,
+					'delay': d} for t, d in zip(dest_rtd['times'], dest_rtd['delay'])]
+
 if __name__ == "__main__":
-	set_bart_vars()
-	# departures = [{'name': x['trainheadstation'], 'time': x['origtime']} for x in get_station_sched("DUBL", "today", bart_api_key)]
+	bart_api_key = get_current_bart_api_key()
+	# all_departures = [{	'name': x['trainheadstation'], 'time': x['origtime']} 
+	# 					for x in get_station_sched("CIVC", "today", bart_api_key)]
+	# dubl_departures = filter(lambda x: x, 
+	# 					[	x if x['name'] == 'Dublin/Pleasanton' else None 
+	# 					for x in all_departures])
+
 	# fmt = [
 	# 	('Destination', 'name', 20),
 	# 	('Scheduled Departure',   'time', 20),
 	# ]
-	# print( TablePrinter(fmt, ul='=')(departures) )
+	# print( TablePrinter(fmt, ul='=')(dubl_departures) )
 
 	departures = get_route_departures("CIVC", "DUBL", bart_api_key)
 	fmt = [
-		('Destination', 'name', 20),
-		('Departure',   'time', 11),
+		('Destination', 'name', 17),
+		('Departure',   'time', 9),
+		('Delay',   'delay', 5),
 	]
 	print( TablePrinter(fmt, ul='=')(departures) )
